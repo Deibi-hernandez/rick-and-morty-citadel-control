@@ -6,7 +6,9 @@ import MultiverseDatabase from './components/MultiverseDatabase'
 import PortalGunScanner from './components/PortalGunScanner'
 import SpaceCrewSidebar from './components/SpaceCrewSidebar'
 import BlenderDimensionPrison from './components/BlenderDimensionPrison'
+import CitadelMainframeStats from './components/CitadelMainframeStats'
 import useFetchCharacters from './hooks/useFetchCharacters'
+import useLocalStorage from './hooks/useLocalStorage'
 import './App.css'
 
 const metrics = [
@@ -33,8 +35,8 @@ const directives = [
 function App() {
   const { data = [], loading, error } = useFetchCharacters()
   const [searchTerm, setSearchTerm] = useState('')
-  const [crew, setCrew] = useState([])
-  const [exiled, setExiled] = useState([])
+  const [crew, setCrew] = useLocalStorage('citadel-crew', [])
+  const [exiled, setExiled] = useLocalStorage('citadel-exiled', [])
 
   const characters = Array.isArray(data) ? data : []
 
@@ -90,6 +92,12 @@ function App() {
   return (
     <div className="app-shell min-vh-100 text-light">
       <main className="container py-4 pb-5">
+        <CitadelMainframeStats
+          totalCharacters={characters.length}
+          crewCount={crew.length}
+          exiledCount={exiled.length}
+        />
+
         <div className="row g-4 align-items-start">
           <div className="col-12 col-xl-9">
             <section className="industrial-panel rounded-4 p-4 p-lg-5 h-100">
