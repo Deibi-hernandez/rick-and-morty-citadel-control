@@ -1,6 +1,12 @@
 import CharacterCard from './CharacterCard'
 
-function MultiverseDatabase({ characters = [], crew = [], onToggleCrew, onExileCharacter }) {
+function MultiverseDatabase({
+  characters = [],
+  crew = [],
+  onToggleCrew,
+  onExileCharacter,
+  loading = false,
+}) {
   if (!Array.isArray(characters) || characters.length === 0) {
     return null
   }
@@ -13,12 +19,13 @@ function MultiverseDatabase({ characters = [], crew = [], onToggleCrew, onExileC
           : false
 
         return (
-          <div key={character?.id ?? `${character?.name ?? 'character'}-${index}`} className="col-12 col-md-4">
+          <div key={character?.id ?? `${character?.name ?? 'character'}-${index}`} className="col-12 col-sm-6 col-lg-4">
             <CharacterCard
               character={character}
               isActiveMember={isActiveMember}
               onToggleCrew={onToggleCrew}
               onExileCharacter={onExileCharacter}
+              loading={loading}
             />
           </div>
         )

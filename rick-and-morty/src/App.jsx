@@ -38,8 +38,12 @@ function App() {
   const [crew, setCrew] = useLocalStorage('citadel-crew', [])
   const [exiled, setExiled] = useLocalStorage('citadel-exiled', [])
 
-  const characters = Array.isArray(data) ? data : []
+  const characters = useMemo(() => (Array.isArray(data) ? data : []), [data])
 
+  // El estado de búsqueda se deriva en memoria con useMemo para crear un catálogo
+  // filtrado sin disparar efectos secundarios o sincronizaciones reactivas complejas.
+  // En vez de recalcular en cada render con useEffect, el valor memoizado sólo cambia
+  // cuando cambian las entradas reales del catálogo, la lista negra o el término escrito.
   const filteredCharacters = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
 
@@ -71,6 +75,10 @@ function App() {
     })
   }
 
+  // La regla de negocio exige atomicidad en el estado cruzado: al expulsar un personaje
+  // del catálogo se remueve automáticamente de la tripulación en el mismo ciclo de render.
+  // Gracias a esa sincronización directa, el estado nuevo se persiste de forma consistente
+  // a través del hook de localStorage sin dejar inconsistencias entre crew y exiled.
   const handleExileCharacter = (id) => {
     setExiled((previousExiled) => {
       if (previousExiled.includes(id)) {
@@ -100,7 +108,7 @@ function App() {
 
         <div className="row g-4 align-items-start">
           <div className="col-12 col-xl-9">
-            <section className="industrial-panel rounded-4 p-4 p-lg-5 h-100">
+            <section className="industrial-panel portal-glow rounded-4 p-4 p-lg-5 h-100">
               <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
                 <div>
                   <p className="text-uppercase text-secondary mb-2 small fw-semibold tracking-wide">
@@ -116,7 +124,7 @@ function App() {
               <div className="row g-3 mb-4">
                 {metrics.map((item) => (
                   <div className="col-12 col-md-4" key={item.label}>
-                    <div className="control-card h-100 px-3 py-4 rounded-3">
+                    <div className="control-card card-mainframe-active h-100 px-3 py-4 rounded-3">
                       <p className="text-secondary small text-uppercase mb-2">{item.label}</p>
                       <p className="terminal-line mb-0 fs-5 fw-semibold text-light">{item.value}</p>
                     </div>
@@ -126,7 +134,7 @@ function App() {
 
               <div className="row g-3">
                 <div className="col-12 col-lg-6">
-                  <div className="control-card h-100 rounded-3 p-4">
+                  <div className="control-card card-mainframe-active h-100 rounded-3 p-4">
                     <h2 className="h5 text-light mb-3">Estado operativo</h2>
                     <p className="text-secondary mb-3">
                       La infraestructura del mainframe presenta un flujo estable y una vista
@@ -140,7 +148,7 @@ function App() {
                   </div>
                 </div>
                 <div className="col-12 col-lg-6">
-                  <div className="control-card h-100 rounded-3 p-4">
+                  <div className="control-card card-mainframe-active h-100 rounded-3 p-4">
                     <h2 className="h5 text-light mb-3">Resumen táctico</h2>
                     <div className="d-grid gap-2">
                       {directives.map((item) => (
@@ -157,13 +165,17 @@ function App() {
           </div>
 
           <div className="col-12 col-md-3">
-            <SpaceCrewSidebar crew={crew} onRemove={handleToggleCrew} />
+            <SpaceCrewSidebar crew={crew} onRemove={handleToggleCrew} loading={loading} />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12">
-            <PortalGunScanner searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+            <PortalGunScanner
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              disabled={loading}
+            />
 
             {loading ? (
               <PortalLoader />
@@ -175,10 +187,11 @@ function App() {
                 crew={crew}
                 onToggleCrew={handleToggleCrew}
                 onExileCharacter={handleExileCharacter}
+                loading={loading}
               />
             ) : (
-              <div className="alert alert-warning mb-0" role="status">
-                No se encontraron variantes en esta realidad. Probablemente Rick las vaporizó a todas.
+              <div className="alert alert-dark text-center border-success mb-0" role="status">
+                ⚠️ ESCÁNER VACÍO: No se encontraron variantes en este cuadrante interdimensional. Comprueba los filtros o revisa si las has desterrado a todas a la Licuadora
               </div>
             )}
 
