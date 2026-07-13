@@ -1,4 +1,4 @@
-function CharacterCard({ character, isActiveMember = false, onToggleCrew }) {
+function CharacterCard({ character, isActiveMember = false, onToggleCrew, onExileCharacter }) {
   const image = character?.image ?? ''
   const name = character?.name ?? 'Personaje sin nombre'
   const species = character?.species ?? 'Desconocida'
@@ -23,7 +23,11 @@ function CharacterCard({ character, isActiveMember = false, onToggleCrew }) {
           >
             {isActiveMember ? 'Miembro de la Crew' : 'Reclutar Crew'}
           </button>
-          <button type="button" className="btn btn-outline-danger btn-sm flex-fill">
+          <button
+            type="button"
+            className="btn btn-outline-danger btn-sm flex-fill"
+            onClick={() => onExileCharacter?.(character?.id)}
+          >
             Desterrar a la Licuadora
           </button>
         </div>

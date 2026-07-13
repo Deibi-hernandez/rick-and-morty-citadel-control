@@ -5,6 +5,7 @@ import ErrorBanner from './components/ErrorBanner'
 import MultiverseDatabase from './components/MultiverseDatabase'
 import PortalGunScanner from './components/PortalGunScanner'
 import SpaceCrewSidebar from './components/SpaceCrewSidebar'
+import BlenderDimensionPrison from './components/BlenderDimensionPrison'
 import useFetchCharacters from './hooks/useFetchCharacters'
 import './App.css'
 
@@ -33,20 +34,28 @@ function App() {
   const { data = [], loading, error } = useFetchCharacters()
   const [searchTerm, setSearchTerm] = useState('')
   const [crew, setCrew] = useState([])
+  const [exiled, setExiled] = useState([])
 
   const characters = Array.isArray(data) ? data : []
 
   const filteredCharacters = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
 
-    if (!normalizedSearch) {
-      return characters
-    }
+    return characters.filter((character) => {
+      const id = character?.id
+      const isExiled = exiled.includes(id)
 
-    return characters.filter((character) =>
-      String(character?.name ?? '').toLowerCase().includes(normalizedSearch),
-    )
-  }, [characters, searchTerm])
+      if (isExiled) {
+        return false
+      }
+
+      const matchesSearch = !normalizedSearch
+        ? true
+        : String(character?.name ?? '').toLowerCase().includes(normalizedSearch)
+
+      return matchesSearch
+    })
+  }, [characters, exiled, searchTerm])
 
   const handleToggleCrew = (character) => {
     setCrew((previousCrew) => {
@@ -59,6 +68,24 @@ function App() {
       return [...previousCrew, character]
     })
   }
+
+  const handleExileCharacter = (id) => {
+    setExiled((previousExiled) => {
+      if (previousExiled.includes(id)) {
+        return previousExiled
+      }
+
+      return [...previousExiled, id]
+    })
+
+    setCrew((previousCrew) => previousCrew.filter((member) => member?.id !== id))
+  }
+
+  const handleReleaseCharacter = (id) => {
+    setExiled((previousExiled) => previousExiled.filter((exiledId) => exiledId !== id))
+  }
+
+  const exiledCharacters = characters.filter((character) => exiled.includes(character?.id))
 
   return (
     <div className="app-shell min-vh-100 text-light">
@@ -139,12 +166,18 @@ function App() {
                 characters={filteredCharacters}
                 crew={crew}
                 onToggleCrew={handleToggleCrew}
+                onExileCharacter={handleExileCharacter}
               />
             ) : (
               <div className="alert alert-warning mb-0" role="status">
                 No se encontraron variantes en esta realidad. Probablemente Rick las vaporizó a todas.
               </div>
             )}
+
+            <BlenderDimensionPrison
+              exiledCharacters={exiledCharacters}
+              onReleaseCharacter={handleReleaseCharacter}
+            />
           </div>
         </div>
       </main>
