@@ -4,6 +4,7 @@ import PortalLoader from './components/PortalLoader'
 import ErrorBanner from './components/ErrorBanner'
 import MultiverseDatabase from './components/MultiverseDatabase'
 import PortalGunScanner from './components/PortalGunScanner'
+import SpaceCrewSidebar from './components/SpaceCrewSidebar'
 import useFetchCharacters from './hooks/useFetchCharacters'
 import './App.css'
 
@@ -31,6 +32,7 @@ const directives = [
 function App() {
   const { data = [], loading, error } = useFetchCharacters()
   const [searchTerm, setSearchTerm] = useState('')
+  const [crew, setCrew] = useState([])
 
   const characters = Array.isArray(data) ? data : []
 
@@ -46,11 +48,23 @@ function App() {
     )
   }, [characters, searchTerm])
 
+  const handleToggleCrew = (character) => {
+    setCrew((previousCrew) => {
+      const isAlreadyMember = previousCrew.some((member) => member?.id === character?.id)
+
+      if (isAlreadyMember) {
+        return previousCrew.filter((member) => member?.id !== character?.id)
+      }
+
+      return [...previousCrew, character]
+    })
+  }
+
   return (
     <div className="app-shell min-vh-100 text-light">
       <main className="container py-4 pb-5">
-        <div className="row g-4">
-          <div className="col-12 col-xl-8">
+        <div className="row g-4 align-items-start">
+          <div className="col-12 col-xl-9">
             <section className="industrial-panel rounded-4 p-4 p-lg-5 h-100">
               <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
                 <div>
@@ -107,24 +121,8 @@ function App() {
             </section>
           </div>
 
-          <div className="col-12 col-xl-4">
-            <aside className="industrial-panel rounded-4 p-4 h-100">
-              <p className="text-uppercase text-secondary small fw-semibold mb-3">Jerarquía del recinto</p>
-              <div className="list-group list-group-flush">
-                <div className="list-group-item bg-transparent border-secondary-subtle px-0 py-3">
-                  <span className="d-block text-light fw-semibold">Módulo central</span>
-                  <span className="text-secondary small">Nivel 01 · Control operativo</span>
-                </div>
-                <div className="list-group-item bg-transparent border-secondary-subtle px-0 py-3">
-                  <span className="d-block text-light fw-semibold">Protocolos de observación</span>
-                  <span className="text-secondary small">Nivel 02 · Supervisión continua</span>
-                </div>
-                <div className="list-group-item bg-transparent border-secondary-subtle px-0 py-3">
-                  <span className="d-block text-light fw-semibold">Mesa de resolución</span>
-                  <span className="text-secondary small">Nivel 03 · Validación de decisiones</span>
-                </div>
-              </div>
-            </aside>
+          <div className="col-12 col-md-3">
+            <SpaceCrewSidebar crew={crew} onRemove={handleToggleCrew} />
           </div>
         </div>
 
@@ -137,7 +135,11 @@ function App() {
             ) : error ? (
               <ErrorBanner />
             ) : filteredCharacters.length > 0 ? (
-              <MultiverseDatabase characters={filteredCharacters} />
+              <MultiverseDatabase
+                characters={filteredCharacters}
+                crew={crew}
+                onToggleCrew={handleToggleCrew}
+              />
             ) : (
               <div className="alert alert-warning mb-0" role="status">
                 No se encontraron variantes en esta realidad. Probablemente Rick las vaporizó a todas.
