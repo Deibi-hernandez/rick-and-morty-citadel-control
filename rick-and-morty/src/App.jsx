@@ -1,7 +1,9 @@
+import { useMemo, useState } from 'react'
 import Footer from './components/Footer'
 import PortalLoader from './components/PortalLoader'
 import ErrorBanner from './components/ErrorBanner'
 import MultiverseDatabase from './components/MultiverseDatabase'
+import PortalGunScanner from './components/PortalGunScanner'
 import useFetchCharacters from './hooks/useFetchCharacters'
 import './App.css'
 
@@ -28,7 +30,21 @@ const directives = [
 
 function App() {
   const { data = [], loading, error } = useFetchCharacters()
+  const [searchTerm, setSearchTerm] = useState('')
+
   const characters = Array.isArray(data) ? data : []
+
+  const filteredCharacters = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    if (!normalizedSearch) {
+      return characters
+    }
+
+    return characters.filter((character) =>
+      String(character?.name ?? '').toLowerCase().includes(normalizedSearch),
+    )
+  }, [characters, searchTerm])
 
   return (
     <div className="app-shell min-vh-100 text-light">
@@ -114,15 +130,17 @@ function App() {
 
         <div className="row mt-4">
           <div className="col-12">
+            <PortalGunScanner searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+
             {loading ? (
               <PortalLoader />
             ) : error ? (
               <ErrorBanner />
-            ) : characters.length > 0 ? (
-              <MultiverseDatabase characters={characters} />
+            ) : filteredCharacters.length > 0 ? (
+              <MultiverseDatabase characters={filteredCharacters} />
             ) : (
-              <div className="alert alert-secondary mb-0" role="status">
-                El portal está en silencio. No hay personajes disponibles para desplegar.
+              <div className="alert alert-warning mb-0" role="status">
+                No se encontraron variantes en esta realidad. Probablemente Rick las vaporizó a todas.
               </div>
             )}
           </div>
