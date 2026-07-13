@@ -1,4 +1,8 @@
 import Footer from './components/Footer'
+import PortalLoader from './components/PortalLoader'
+import ErrorBanner from './components/ErrorBanner'
+import MultiverseDatabase from './components/MultiverseDatabase'
+import useFetchCharacters from './hooks/useFetchCharacters'
 import './App.css'
 
 const metrics = [
@@ -23,6 +27,9 @@ const directives = [
 ]
 
 function App() {
+  const { data = [], loading, error } = useFetchCharacters()
+  const characters = Array.isArray(data) ? data : []
+
   return (
     <div className="app-shell min-vh-100 text-light">
       <main className="container py-4 pb-5">
@@ -102,6 +109,22 @@ function App() {
                 </div>
               </div>
             </aside>
+          </div>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-12">
+            {loading ? (
+              <PortalLoader />
+            ) : error ? (
+              <ErrorBanner />
+            ) : characters.length > 0 ? (
+              <MultiverseDatabase characters={characters} />
+            ) : (
+              <div className="alert alert-secondary mb-0" role="status">
+                El portal está en silencio. No hay personajes disponibles para desplegar.
+              </div>
+            )}
           </div>
         </div>
       </main>
